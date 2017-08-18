@@ -4,6 +4,7 @@
 		<el-row style="margin-top: 20px;">
 			<el-col :span="14" :offset="4">
 				<header class="form_header">选择食品种类</header>
+				<!-- 表单 -->
 				<el-form :model="categoryForm" ref="categoryForm" label-width="110px" class="form">
 					<el-row class="category_select">
 						<el-form-item label="食品种类">
@@ -13,6 +14,7 @@
 							</el-select>
 						</el-form-item>
 					</el-row>
+					<!-- 显示编辑，默认隐藏 -->
 					<el-row class="add_category_row" :class="showAddCategory? 'showEdit': ''">
 						<div class="add_category">
 							<el-form-item label="食品种类" prop="name">
@@ -26,6 +28,7 @@
 							</el-form-item>
 						</div>
 					</el-row>
+					<!-- 显示添加食品种类按钮 -->
 					<div class="add_category_button" @click="addCategoryFun">
 						<i class="el-icon-caret-top edit_icon" v-if="showAddCategory"></i>
 						<i class="el-icon-caret-bottom edit_icon" v-else slot="icon"></i>
@@ -33,6 +36,7 @@
 					</div>
 				</el-form>
 				<header class="form_header">添加食品</header>
+				<!-- 表单 -->
 				<el-form :model="foodForm" :rules="foodrules" ref="foodForm" label-width="110px" class="form food_form">
 					<el-form-item label="食品名称" prop="name">
 						<el-input v-model="foodForm.name"></el-input>
@@ -55,10 +59,12 @@
 							</el-option>
 						</el-select>
 					</el-form-item>
+					<!-- 单选框 -->
 					<el-form-item label="食品规格">
 						<el-radio class="radio" v-model="foodSpecs" label="one">单规格</el-radio>
 						<el-radio class="radio" v-model="foodSpecs" label="more">多规格</el-radio>
 					</el-form-item>
+					<!-- 绑定单选框的值，默认显示 -->
 					<el-row v-if="foodSpecs == 'one'">
 						<el-form-item label="包装费">
 							<el-input-number v-model="foodForm.specs[0].packing_fee" :min="0" :max="100"></el-input-number>
@@ -67,8 +73,10 @@
 							<el-input-number v-model="foodForm.specs[0].price" :min="0" :max="10000"></el-input-number>
 						</el-form-item>
 					</el-row>
+					<!-- 单选框值为more时显示 -->
 					<el-row v-else style="overflow: auto; text-align: center;">
 						<el-button type="primary" @click="dialogFormVisible = true" style="margin-bottom: 10px;">添加规格</el-button>
+						<!-- 规格列表显示 -->
 						<el-table :data="foodForm.specs" style="margin-bottom: 20px;" :row-class-name="tableRowClassName">
 							<el-table-column prop="specs" label="规格">
 							</el-table-column>
@@ -87,6 +95,7 @@
 						<el-button type="primary" @click="addFood('foodForm')">确认添加食品</el-button>
 					</el-form-item>
 				</el-form>
+				<!-- 添加规格弹窗 -->
 				<el-dialog title="添加规格" v-model="dialogFormVisible">
 					<el-form :rules="specsFormrules" :model="specsForm">
 						<el-form-item label="规格" label-width="100px" prop="specs">
@@ -118,20 +127,20 @@ export default {
 		return {
 			baseUrl,
 			baseImgPath,
-			restaurant_id: 1,
+			restaurant_id: 1, // 商铺id默认值
 			categoryForm: {
-				categoryList: [],
-				categorySelect: '',
-				name: '',
-				description: '',
+				categoryList: [], // 食品种类数据
+				categorySelect: '', // 选中的食品种类
+				name: '', // 食品名称
+				description: '', // 食品描述信息
 			},
 			foodForm: {
-				name: '',
-				description: '',
-				image_path: '',
-				activity: '',
-				attributes: [],
-				specs: [{
+				name: '', // 食品名称
+				description: '', // 食品详情
+				image_path: '', // 食品图片路径
+				activity: '', // 食品活动
+				attributes: [], // 食品特点
+				specs: [{ // 单选默认选中的值
 					specs: '默认',
 					packing_fee: 0,
 					price: 20,
@@ -149,10 +158,10 @@ export default {
 				value: '招牌',
 				label: '招牌'
 			},],
-			showAddCategory: false,
-			foodSpecs: 'one',
-			dialogFormVisible: false,
-			specsForm: {
+			showAddCategory: false, // 食品种类的显示/隐藏
+			foodSpecs: 'one', // 单选默认选中的值
+			dialogFormVisible: false, // 规格弹窗
+			specsForm: { // 规格数据
 				specs: '',
 				packing_fee: 0,
 				price: 20,
@@ -168,10 +177,13 @@ export default {
 		headTop,
 	},
 	created() {
+		// 页面渲染时判断路由是否带的有商家id
 		if (this.$route.query.restaurant_id) {
 			this.restaurant_id = this.$route.query.restaurant_id;
 		} else {
+			// 没有的话随机产生一个
 			this.restaurant_id = Math.ceil(Math.random() * 10);
+			// 添加提示信息
 			this.$msgbox({
 				title: '提示',
 				message: '添加食品需要选择一个商铺，先去就去选择商铺吗？',
@@ -200,8 +212,10 @@ export default {
 		}
 	},
 	methods: {
+		// 初始化数据
 		async initData() {
 			try {
+				// 获取当前店铺食品种类
 				const result = await getCategory(this.restaurant_id);
 				if (result.status == 1) {
 					result.category_list.map((item, index) => {
@@ -216,9 +230,11 @@ export default {
 				console.log(err)
 			}
 		},
+		// 切换显示添加食品种类
 		addCategoryFun() {
 			this.showAddCategory = !this.showAddCategory;
 		},
+		// 添加食品种类表单提交
 		submitcategoryForm(categoryForm) {
 			this.$refs[categoryForm].validate(async (valid) => {
 				if (valid) {
@@ -252,6 +268,7 @@ export default {
 				}
 			});
 		},
+		// 图片上传成功事件
 		uploadImg(res, file) {
 			if (res.status == 1) {
 				this.foodForm.image_path = res.image_path;
@@ -259,6 +276,7 @@ export default {
 				this.$message.error('上传图片失败！');
 			}
 		},
+		// 图片上传之前
 		beforeImgUpload(file) {
 			const isRightType = (file.type === 'image/jpeg') || (file.type === 'image/png');
 			const isLt2M = file.size / 1024 / 1024 < 2;
@@ -271,13 +289,17 @@ export default {
 			}
 			return isRightType && isLt2M;
 		},
+		// 确定添加食品规格
 		addspecs() {
+			// 添加到食品规格数组
 			this.foodForm.specs.push({ ...this.specsForm });
+			// 重置数据
 			this.specsForm.specs = '';
 			this.specsForm.packing_fee = 0;
 			this.specsForm.price = 20;
 			this.dialogFormVisible = false;
 		},
+		// 规格列表数据删除
 		handleDelete(index) {
 			this.foodForm.specs.splice(index, 1);
 		},
@@ -289,6 +311,7 @@ export default {
 			}
 			return '';
 		},
+		// 添加食品
 		addFood(foodForm) {
 			this.$refs[foodForm].validate(async (valid) => {
 				if (valid) {
